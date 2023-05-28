@@ -92,9 +92,9 @@ app.post('/products', async (req, res) => {
     if (Object.keys(req.body).length === 0) {
         return res.status(400).json({ message: "Bad Request" });
     }
-      const { id, title, price, description, category, image } = req.body;
+      const {title, price, description, category, image } = req.body;
 
-      const product = await Product.create({ id, title, price, description, category, image });
+      const product = await Product.create({title, price, description, category, image });
 
       res.status(201).json(product);
       
