@@ -1,9 +1,9 @@
 import dotenv from "dotenv"
 import mongoose from "mongoose"
 dotenv.config();
-
+const connectionString = "mongodb+srv://lst68868:i4cCEBp5z95FmNAz@ecommercedb.stpkutv.mongodb.net/Storefront?retryWrites=true&w=majority"
 function connectToDB(){
-    mongoose.connect(process.env.DATABASE_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
 
     // Handling connection events
     mongoose.connection.on('connected', () => {
