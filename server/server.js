@@ -40,6 +40,11 @@ app.get('/seed', async (req, res) => {
  }
 });
 
+//Empty home route
+app.get('/', (req, res) => {
+    res.send("Welcome to the home route");
+});
+
 // Endpoint to fetch all products
 app.get('/products', async (req, res) => {
  try {
