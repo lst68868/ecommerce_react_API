@@ -1,6 +1,6 @@
 # Project Proposal
 
-My project makes use of a Fake Store API in order to build a basic online store with CRUD functionality.
+My project makes use of https://fakestoreapi.com/ in order to build a basic online store with CRUD functionality.
 
 ## Project name and description
 
@@ -34,9 +34,7 @@ These routes provide basic CRUD operations (Create, Read, Update, Delete) for pr
 
 ## User Stories
 
-Your user stories are a way to talk about your applications features in the following format:
-
-- `As a user, I should be able to view all products available in the database.
+- As a user, I should be able to view all products available in the database.
 - As a user, I should be able to search for a specific product by its ID.
 - As a user, I should be able to filter products by category.
 - As a user, I should be able to add a new product to the database by providing the necessary details.
