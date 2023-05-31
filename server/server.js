@@ -189,7 +189,7 @@ app.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    res.status(200).json({ message: "Login successful" });
+    res.status(200).json({ message: "Login successful", User: user });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: `Internal Server Error: ${error._message}` });
