@@ -19,23 +19,33 @@ app.use(express.json());
 
 connectToDB();
 
-// Connecting to MongoDB
-
 // Endpoint to seed the database with products from the given API
 app.get("/seed", async (req, res) => {
   try {
+    Product.collection.dropIndex("id_1", function (err, result) {
+      if (err) {
+        console.log("Error in dropping index!", err);
+      }
+    });
     const response = await axios.get("https://fakestoreapi.com/products");
-    const products = response.data;
-
+    let products = response.data;
+    console.log("THESE PRODUCTS HAVE OLD ID " + products);
+    // Removing the id field from each product
+    products = products.map((product) => {
+      const { id, ...productWithoutId } = product;
+      return productWithoutId;
+    });
+    console.log("NO IDS HERE " + products);
     // Deleting all products before seeding
     await Product.deleteMany({});
     // Creating products
     await Product.create(products);
+    console.log("DID IT WORK? " + products);
 
     res.json({ message: "Database seeded successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: error });
   }
 });
 
@@ -55,9 +65,8 @@ app.get("/products", async (req, res) => {
   }
 });
 
-// Endpoint to fetch a specific product by ID
+// Endpoint to fetch a specific product by _ID
 app.get("/products/:id", async (req, res) => {
-  console.log(req.params.id);
   const productId = req.params.id;
 
   try {
@@ -117,7 +126,6 @@ app.delete("/products/:id", async (req, res) => {
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
-
     res.json({ message: "Product deleted successfully" });
   } catch (error) {
     console.error(error);
@@ -125,21 +133,27 @@ app.delete("/products/:id", async (req, res) => {
   }
 });
 
-// Endpoint to update/edit a product in the database
+// Endpoint to update a product in the database
 app.put("/products/:id", async (req, res) => {
   const productId = req.params.id;
-  const { title, price } = req.body;
-
   try {
+    const { title, price, description, category, image } = req.body;
+
     const product = await Product.findOneAndUpdate(
       { _id: productId },
-      { title, price },
+      {
+        title,
+        price,
+        description,
+        category,
+        image,
+      },
       { new: true }
     );
+
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
-
     res.json(product);
   } catch (error) {
     console.error(error);
@@ -153,7 +167,6 @@ app.post("/user", async (req, res) => {
     if (Object.keys(req.body).length === 0) {
       return res.status(400).json({ message: "Bad Request" });
     }
-    console.log(req.body.length);
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(req.body.password, salt);
     const { firstName, lastName, email } = req.body;
@@ -200,7 +213,7 @@ app.delete("/user/:email", async (req, res) => {
   const email = req.params.email;
 
   try {
-    const deletedUser = await User.findOneAndDelete(email);
+    const deletedUser = await User.findOneAndDelete({ email: email });
     if (!deletedUser) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -212,7 +225,6 @@ app.delete("/user/:email", async (req, res) => {
   }
 });
 
-// Starting the server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
