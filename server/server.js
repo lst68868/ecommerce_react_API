@@ -57,10 +57,11 @@ app.get("/products", async (req, res) => {
 
 // Endpoint to fetch a specific product by ID
 app.get("/products/:id", async (req, res) => {
-  const productId = req.params._id;
+  console.log(req.params.id);
+  const productId = req.params.id;
 
   try {
-    const product = await Product.findOne({ id: productId });
+    const product = await Product.findOne({ _id: productId });
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
@@ -110,9 +111,9 @@ app.post("/products", async (req, res) => {
 
 // Endpoint to delete a product from the database
 app.delete("/products/:id", async (req, res) => {
-  const productId = req.params._id;
+  const productId = req.params.id;
   try {
-    const product = await Product.findOneAndDelete({ id: productId });
+    const product = await Product.findOneAndDelete({ _id: productId });
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
@@ -126,12 +127,12 @@ app.delete("/products/:id", async (req, res) => {
 
 // Endpoint to update/edit a product in the database
 app.put("/products/:id", async (req, res) => {
-  const productId = req.params._id;
+  const productId = req.params.id;
   const { title, price } = req.body;
 
   try {
     const product = await Product.findOneAndUpdate(
-      { id: productId },
+      { _id: productId },
       { title, price },
       { new: true }
     );
