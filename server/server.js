@@ -1,4 +1,6 @@
 // Importing necessary dependencies
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import cors from "cors";
 import axios from "axios";
@@ -8,11 +10,14 @@ import User from "../DB/Models/Users.js";
 import connectToDB from "../DB/connect.js";
 import bcrypt from "bcrypt";
 
+const PORT = process.env.PORT || 3000;
+const REACT_APP_SECRET_TOKEN = process.env.REACT_APP_SECRET_TOKEN;
+
 // Instantiating the express app
 const app = express();
 // Accessing environment variables
 // Setting port from environment variables or default 3000
-const PORT = process.env.PORT || 3000;
+
 // Applying CORS middleware to allow requests from different origins
 app.use(cors());
 // Applying middleware for JSON body parsing
@@ -22,14 +27,18 @@ connectToDB();
 
 // JWT middleware handler:
 function authenticateToken(req, res, next) {
-  const authHeader = req.headers["authorization"];
+  const authHeader = req.headers["Authorization"];
+  console.log(authHeader);
   const token = authHeader && authHeader.split(" ")[1];
+  console.log(token);
   if (!token) {
+    console.log("No token found");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  jwt.verify(token, "password", (err, user) => {
+  jwt.verify(token, REACT_APP_SECRET_TOKEN, (err, user) => {
     if (err) {
+      console.log("Token verification failed:", err);
       return res.status(403).json({ message: "Invalid token" });
     }
 
@@ -69,12 +78,13 @@ app.get("/seed", async (req, res) => {
 });
 
 // Empty home route
-app.get("/", (req, res) => {
+app.get("/", authenticateToken, (req, res) => {
   res.send("Welcome to the home route");
 });
 
 // Endpoint to fetch all products
-app.get("/products", async (req, res) => {
+app.get("/products", authenticateToken, async (req, res) => {
+  console.log(req);
   try {
     const products = await Product.find({});
     res.json(products);
@@ -115,7 +125,7 @@ app.get("/products/category/:category", async (req, res) => {
 });
 
 // Endpoint to add a product to the database
-app.post("/products", authenticateToken, async (req, res) => {
+app.post("/products", async (req, res) => {
   try {
     if (Object.keys(req.body).length === 0) {
       return res.status(400).json({ message: "Bad Request" });
@@ -221,7 +231,7 @@ app.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    const token = jwt.sign({ userId: user._id }, "your-secret-key", {
+    const token = jwt.sign({ userId: user._id }, REACT_APP_SECRET_TOKEN, {
       expiresIn: "24h", // Set the token expiration time
     });
 
