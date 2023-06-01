@@ -2,6 +2,7 @@
 import express from "express";
 import cors from "cors";
 import axios from "axios";
+import jwt from "jsonwebtoken";
 import Product from "../DB/Models/Products.js";
 import User from "../DB/Models/Users.js";
 import connectToDB from "../DB/connect.js";
@@ -18,6 +19,24 @@ app.use(cors());
 app.use(express.json());
 
 connectToDB();
+
+// JWT middleware handler:
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  jwt.verify(token, "password", (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid token" });
+    }
+
+    req.user = user;
+    next();
+  });
+}
 
 // Endpoint to seed the database with products from the given API
 app.get("/seed", async (req, res) => {
@@ -49,7 +68,7 @@ app.get("/seed", async (req, res) => {
   }
 });
 
-//Empty home route
+// Empty home route
 app.get("/", (req, res) => {
   res.send("Welcome to the home route");
 });
@@ -96,7 +115,7 @@ app.get("/products/category/:category", async (req, res) => {
 });
 
 // Endpoint to add a product to the database
-app.post("/products", async (req, res) => {
+app.post("/products", authenticateToken, async (req, res) => {
   try {
     if (Object.keys(req.body).length === 0) {
       return res.status(400).json({ message: "Bad Request" });
@@ -161,7 +180,7 @@ app.put("/products/:id", async (req, res) => {
   }
 });
 
-//Endpoint to create new user
+// Endpoint to create a new user
 app.post("/user", async (req, res) => {
   try {
     if (Object.keys(req.body).length === 0) {
@@ -202,7 +221,11 @@ app.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    res.status(200).json({ message: "Login successful", User: user });
+    const token = jwt.sign({ userId: user._id }, "your-secret-key", {
+      expiresIn: "24h", // Set the token expiration time
+    });
+
+    res.status(200).json({ message: "Login successful", token, User: user });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: `Internal Server Error: ${error._message}` });
