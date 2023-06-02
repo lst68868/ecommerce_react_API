@@ -1,5 +1,7 @@
 // Importing necessary dependencies
 import express from "express";
+import dotenv from "dotenv";
+dotenv.config();
 import cors from "cors";
 import axios from "axios";
 import Product from "../DB/Models/Products.js";
@@ -161,6 +163,17 @@ app.put("/products/:id", async (req, res) => {
   }
 });
 
+// Endpoint to fetch all users
+app.get("/users", async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 //Endpoint to create new user
 app.post("/user", async (req, res) => {
   try {
@@ -178,7 +191,7 @@ app.post("/user", async (req, res) => {
     };
     await User.create(user);
 
-    res.status(200).json({ message: "User created! Yaaaaay :)" });
+    res.status(200).json({ user });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: `Internal Server Error: ${error._message}` });
@@ -209,19 +222,18 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.delete("/user/:email", async (req, res) => {
-  const email = req.params.email;
-
+// Endpoint to delete a user from the database
+app.delete("/user/:id", async (req, res) => {
+  const userId = req.params.id;
   try {
-    const deletedUser = await User.findOneAndDelete({ email: email });
-    if (!deletedUser) {
-      return res.status(404).json({ message: "User not found" });
+    const user = await User.findOneAndDelete({ _id: userId });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
-
-    res.status(200).json({ message: "User deleted successfully" });
+    res.json({ message: "User deleted successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: `Internal Server Error: ${error._message}` });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
