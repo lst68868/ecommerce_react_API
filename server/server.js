@@ -163,6 +163,30 @@ app.put("/products/:id", async (req, res) => {
   }
 });
 
+app.post("/login", async (req, res) => {
+  try {
+    if (Object.keys(req.body).length === 0) {
+      return res.status(400).json({ message: "Bad Request" });
+    }
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    res.status(200).json({ message: "Login successful", User: user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `Internal Server Error: ${error._message}` });
+  }
+});
+
 // Endpoint to fetch all users
 app.get("/users", async (req, res) => {
   try {
@@ -198,35 +222,12 @@ app.post("/user", async (req, res) => {
   }
 });
 
-app.post("/login", async (req, res) => {
-  try {
-    if (Object.keys(req.body).length === 0) {
-      return res.status(400).json({ message: "Bad Request" });
-    }
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return res.status(401).json({ message: "Invalid password" });
-    }
-
-    res.status(200).json({ message: "Login successful", User: user });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: `Internal Server Error: ${error._message}` });
-  }
-});
-
 // Endpoint to delete a user from the database
-app.delete("/user/:id", async (req, res) => {
-  const userId = req.params.id;
+app.delete("/users/:email", async (req, res) => {
+  const userEmail = req.params.email;
+  console.log(userEmail);
   try {
-    const user = await User.findOneAndDelete({ _id: userId });
+    const user = await User.findOneAndDelete({ email: userEmail });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
